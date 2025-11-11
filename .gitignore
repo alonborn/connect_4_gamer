@@ -1,0 +1,12 @@
+cd ~/ros_ws/src/connect_4_gamer
+echo "build/
+install/
+log/
+__pycache__/
+*.pyc
+" > .gitignore
+
+git add .gitignore
+git commit -m "Add .gitignore to ignore build artifacts"
+git push
+
