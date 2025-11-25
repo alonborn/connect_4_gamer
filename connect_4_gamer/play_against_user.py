@@ -28,9 +28,9 @@ def print_board(board):
             if v == EMPTY:
                 row.append(".")
             elif v == P1:
-                row.append(f"{RED}X{RESET}")
+                row.append(f"{BLUE}X{RESET}")
             else:
-                row.append(f"{BLUE}O{RESET}")
+                row.append(f"{RED}O{RESET}")
         print(f"{r} " + " ".join(row))
     print()
 

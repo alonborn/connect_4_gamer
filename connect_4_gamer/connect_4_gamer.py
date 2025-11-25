@@ -48,7 +48,11 @@ class Connect4AI(Node):
         YELLOW = "\033[33m"
         RESET  = "\033[0m"
 
-        print("\n  " + " ".join(f"{YELLOW}{c}{RESET}" for c in range(7)))
+        # Header row
+        header = "\n  " + " ".join(f"{YELLOW}{c}{RESET}" for c in range(7))
+        self.get_logger().info(header)
+
+        # Rows 5→0
         for r in range(5, -1, -1):
             row = []
             for c in range(7):
@@ -59,8 +63,13 @@ class Connect4AI(Node):
                     row.append(f"{RED}X{RESET}")
                 else:
                     row.append(f"{BLUE}O{RESET}")
-            print(f"{r} " + " ".join(row))
-        print()
+
+            line = f"{r} " + " ".join(row)
+            self.get_logger().info(line)
+
+        # Empty line
+        self.get_logger().info("")
+
 
     # ------------------------------------------------------
     # API encoder: convert to "top→bottom, left→right"
@@ -145,10 +154,10 @@ class Connect4AI(Node):
 
 
 def main(args=None):
-    debugpy.listen(("localhost", 5678))  # Port for debugger to connect
-    print("Waiting for debugger to attach...")
-    debugpy.wait_for_client()
-    print("Debugger connected.")
+    # debugpy.listen(("localhost", 5678))  # Port for debugger to connect
+    # print("Waiting for debugger to attach...")
+    # debugpy.wait_for_client()
+    # print("Debugger connected.")
 
     rclpy.init(args=args)
     node = Connect4AI()
