@@ -10,7 +10,7 @@ GET_MOVE_API = "https://kevinalbs.com/connect4/back-end/index.php/getMoves"
 HAS_WON_API = "https://kevinaalbs.com/connect4/back-end/index.php/hasWon"
 
 EMPTY, P1, P2 = 0, 1, 2   # P1=X, P2=O
-
+ROWS, COLS = 6, 7
 
 class Connect4AI(Node):
 
@@ -106,10 +106,66 @@ class Connect4AI(Node):
         best = max(playable, key=lambda c: float(scores.get(str(c), float("-inf"))))
         return best
 
+
+
+    # ------------------------------------------------------
+    # Local win detection (no API)
+    # ------------------------------------------------------
+    def check_winner_local(self, board2d):
+        """
+        board2d is 6×7 list of lists.
+        Returns:
+            P1 if player 1 wins
+            P2 if player 2 wins
+            None otherwise
+        """
+        
+        def has_four(player):
+            for r in range(ROWS):
+                for c in range(COLS):
+                    if board2d[r][c] != player:
+                        continue
+
+                    # → right
+                    if c + 3 < COLS:
+                        if (board2d[r][c+1] == player and
+                            board2d[r][c+2] == player and
+                            board2d[r][c+3] == player):
+                            return True
+
+                    # ↑ up
+                    if r + 3 < ROWS:
+                        if (board2d[r+1][c] == player and
+                            board2d[r+2][c] == player and
+                            board2d[r+3][c] == player):
+                            return True
+
+                    # ↗ up-right
+                    if r + 3 < ROWS and c + 3 < COLS:
+                        if (board2d[r+1][c+1] == player and
+                            board2d[r+2][c+2] == player and
+                            board2d[r+3][c+3] == player):
+                            return True
+
+                    # ↖ up-left
+                    if r + 3 < ROWS and c - 3 >= 0:
+                        if (board2d[r+1][c-1] == player and
+                            board2d[r+2][c-2] == player and
+                            board2d[r+3][c-3] == player):
+                            return True
+
+            return False
+
+        if has_four(P1):
+            return P1
+        if has_four(P2):
+            return P2
+        return None
+
     # ------------------------------------------------------
     # API: has this player won?
     # ------------------------------------------------------
-    def check_has_won_from_api(self, flat_board, player):
+    def check_has_won_from_api_old(self, flat_board, player):
         payload = {
             "board_data": self.encode_board_for_api(flat_board),
             "player": player
@@ -123,6 +179,28 @@ class Connect4AI(Node):
         except Exception as e:
             self.get_logger().error(f"hasWon API error: {e}")
             return False
+
+    # ------------------------------------------------------
+    # ROS service handler: has_won (LOCAL detection)
+    # ------------------------------------------------------
+    def handle_has_won(self, request, response):
+        print("\n📥 New request: has_won")
+        print(f"Player asked: {request.player}")
+
+        board2d = self.to_2d(request.board)
+        self.print_board(board2d)
+
+        winner = self.check_winner_local(board2d)
+
+        if winner is None:
+            response.has_won = False
+            print("📤 winner: None (no win)\n")
+        else:
+            response.has_won = (winner == request.player)
+            print(f"📤 winner: Player {winner}\n")
+
+        return response
+
 
     # ------------------------------------------------------
     # ROS service handler: get_next_move
